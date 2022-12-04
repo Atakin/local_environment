@@ -1,7 +1,7 @@
 import math
 import os
 from rdkit import Chem
-from settings import R_CUT, H_BONDS
+from src.settings import R_CUT, H_BONDS
 from rdkit.Chem.rdchem import BondType
 from rdkit.Geometry import Point3D
 

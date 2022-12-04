@@ -1,5 +1,5 @@
 import argparse
-from local_environment import get_local_environments
+from src.local_environment import get_local_environments
 
 
 def main():

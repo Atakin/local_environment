@@ -5,3 +5,6 @@ src/test.py
 .DS_store
 settings.json
 .gitignore
+build
+*.spec
+dist
