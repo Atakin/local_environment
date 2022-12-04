@@ -2,3 +2,6 @@ moleculas
 backup
 __pycache__
 src/test.py
+.DS_store
+settings.json
+.gitignore

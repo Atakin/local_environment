@@ -19,7 +19,6 @@ def get_submols(mol, radius):
     atoms = mol.GetAtoms()
     submols = []
     for atom in atoms:
-        print(f"{atom.GetIdx() + 1}/{len(atoms)}")
         env = Chem.rdmolops.FindAtomEnvironmentOfRadiusN(
             mol, radius, atom.GetIdx(), useHs=True
         )
@@ -52,12 +51,6 @@ def repair_atom(submol_atom, mol_atom, submol, mol):
             add_atom_H(missing_atom, submol_atom, mol_atom, submol, mol)
     else:
         try_change_r_cut(missing_atoms, submol_atom, mol_atom, submol, mol)
-        print(
-            *[a.GetSymbol() for a in missing_atoms],
-            mol_atom.GetIdx() + 1,
-            submol_atom.GetIdx() + 1,
-            "change",
-        )
 
 
 def count_Hs(atoms):
@@ -124,7 +117,6 @@ def is_bond_single(mol, atom_idx_1, atom_idx_2):
 
 
 def try_change_r_cut(missing_atoms, submol_atom, mol_atom, submol, mol):
-    print(f"Change for {mol_atom.GetIdx()+1}")
     can_add = True
     to_add = []
     mol_atom_coords = get_coords(mol, mol_atom.GetIdx())
@@ -205,7 +197,9 @@ def try_change_r_cut(missing_atoms, submol_atom, mol_atom, submol, mol):
                             BondType.SINGLE,
                         )
     else:
-        print("Can`t do anything")
+        print(
+            f"Error for atom {mol_atom.GetSymbol()} with number {mol_atom.GetIdx()+1}"
+        )
 
 
 def find_missing_atoms(submol_atom, mol_atom, submol, mol):
