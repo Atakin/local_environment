@@ -1,15 +1,15 @@
 import math
 import os
 from rdkit import Chem
-from src.settings import R_CUT, H_BONDS
+from settings import H_BONDS
 from rdkit.Chem.rdchem import BondType
 from rdkit.Geometry import Point3D
 
 
-def get_local_environments(filepath):
+def get_local_environments(filepath, r_cut):
     dir_path = _make_dir_to_submols(filepath)
     mol = _upload_mol_from_mol_file(filepath)
-    submols, atom_map = get_submols(mol, R_CUT)
+    submols, atom_map = get_submols(mol, r_cut)
     _write_submols_to_files(submols, dir_path)
     _write_atom_map_to_file(atom_map, dir_path)
 
