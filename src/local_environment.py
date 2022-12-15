@@ -39,9 +39,52 @@ def set_coords(mol, atom_idx, point):
 
 
 def check_and_repair_submol(submol, mol, amap):
+    restore_rings(submol, mol, amap)
     bad_atoms = find_bad_atoms(submol, mol, amap)
     for submol_atom, mol_atom in bad_atoms:
         repair_atom(submol_atom, mol_atom, submol, mol)
+
+
+def restore_rings(submol, mol, amap):
+    ssr = Chem.GetSymmSSSR(mol)
+    for ring in ssr:
+        ring_atmos = list(ring)
+        if need_to_restore_ring(ring_atmos, amap):
+            restore_ring(submol, mol, amap, ring_atmos)
+
+
+def need_to_restore_ring(ring_atmos, amap):
+    if len(ring_atmos) > 6:
+        return False
+    atoms_from_ring = 0
+    for atom in amap:
+        if atom in ring_atmos:
+            atoms_from_ring += 1
+    return atoms_from_ring > 1
+
+
+def restore_ring(submol, mol, amap, ring_atoms):
+    atoms_to_add = []
+    for ring_atom in ring_atoms:
+        if ring_atom not in amap:
+            atoms_to_add.append(ring_atom)
+
+    for atom in atoms_to_add:
+        new_atom = Chem.Atom(mol.GetAtomWithIdx(atom).GetSymbol())
+        new_atom_idx = submol.AddAtom(new_atom)
+        amap[atom] = new_atom_idx
+        set_coords(submol, new_atom_idx, get_coords(mol, atom))
+
+    for atom in atoms_to_add:
+        neibs = mol.GetAtomWithIdx(atom).GetNeighbors()
+        for neib in neibs:
+            neib_idx = neib.GetIdx()
+            if (
+                neib_idx in ring_atoms
+                and submol.GetBondBetweenAtoms(amap[neib_idx], amap[atom]) is None
+            ):
+                bond_type = mol.GetBondBetweenAtoms(neib_idx, atom).GetBondType()
+                submol.AddBond(amap[neib.GetIdx()], amap[atom], bond_type)
 
 
 def repair_atom(submol_atom, mol_atom, submol, mol):
