@@ -46,11 +46,46 @@ def check_and_repair_submol(submol, mol, amap):
 
 def repair_atom(submol_atom, mol_atom, submol, mol):
     missing_atoms = find_missing_atoms(submol_atom, mol_atom, submol, mol)
+    missing_atoms = try_to_find_missing_atom_in_submol(
+        submol_atom, mol_atom, submol, mol, missing_atoms
+    )
     if is_bonds_single(missing_atoms, mol, mol_atom):
         for missing_atom in missing_atoms:
             add_atom_H(missing_atom, submol_atom, mol_atom, submol, mol)
     else:
         try_change_r_cut(missing_atoms, submol_atom, mol_atom, submol, mol)
+
+
+def try_to_find_missing_atom_in_submol(
+    submol_atom, mol_atom, submol, mol, missing_atoms
+):
+    cleared_missing_atoms = []
+    for missing_atom in missing_atoms:
+        cleared = True
+        for submol_another_atom in submol.GetAtoms():
+            if get_atom_tupple(mol, missing_atom.GetIdx()) == get_atom_tupple(
+                submol, submol_another_atom.GetIdx()
+            ):
+                cleared = False
+                restore_bond(
+                    submol_atom, submol_another_atom, missing_atom, submol, mol
+                )
+        if cleared:
+            cleared_missing_atoms.append(missing_atom)
+    return cleared_missing_atoms
+
+
+def restore_bond(submol_atom, submol_another_atom, missing_atom, submol, mol):
+    for neib in missing_atom.GetNeighbors():
+        if get_atom_tupple(mol, neib.GetIdx()) == get_atom_tupple(
+            submol, submol_atom.GetIdx()
+        ):
+            bond_type = mol.GetBondBetweenAtoms(
+                missing_atom.GetIdx(), neib.GetIdx()
+            ).GetBondType()
+            submol.AddBond(
+                submol_atom.GetIdx(), submol_another_atom.GetIdx(), bond_type
+            )
 
 
 def count_Hs(atoms):
@@ -119,17 +154,12 @@ def is_bond_single(mol, atom_idx_1, atom_idx_2):
 def try_change_r_cut(missing_atoms, submol_atom, mol_atom, submol, mol):
     can_add = True
     to_add = []
-    mol_atom_coords = get_coords(mol, mol_atom.GetIdx())
     for missing_atom in missing_atoms:
         if not is_bond_single(mol, mol_atom.GetIdx(), missing_atom.GetIdx()):
             missing_atom_neibs = []
             for atom in missing_atom.GetNeighbors():
-                coords = get_coords(mol, atom.GetIdx())
-                if (atom.GetSymbol(), coords.x, coords.y, coords.z) != (
-                    mol_atom.GetSymbol(),
-                    mol_atom_coords.x,
-                    mol_atom_coords.y,
-                    mol_atom_coords.z,
+                if get_atom_tupple(mol, atom.GetIdx()) != get_atom_tupple(
+                    mol, mol_atom.GetIdx()
                 ):
                     missing_atom_neibs.append(atom)
 
@@ -238,6 +268,11 @@ def find_bad_atoms(submol, mol, amap):
         if len(mol_atom.GetNeighbors()) > len(submol_atom.GetNeighbors()):
             bad_atoms.append((submol_atom, mol_atom))
     return bad_atoms
+
+
+def get_atom_tupple(mol, atom_idx):
+    coords = get_coords(mol, atom_idx)
+    return (mol.GetAtomWithIdx(atom_idx).GetSymbol(), coords.x, coords.y, coords.z)
 
 
 def _upload_mol_from_mol_file(filepath):
