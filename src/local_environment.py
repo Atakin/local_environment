@@ -4,6 +4,7 @@ from rdkit import Chem
 from settings import H_BONDS
 from rdkit.Chem.rdchem import BondType
 from rdkit.Geometry import Point3D
+import shutil
 
 
 def get_local_environments(filepath, r_cut):
@@ -12,6 +13,7 @@ def get_local_environments(filepath, r_cut):
     submols, atom_map = get_submols(mol, r_cut)
     _write_submols_to_files(submols, dir_path)
     _write_atom_map_to_file(atom_map, dir_path)
+    _put_main_atom_on_first_place(atom_map, dir_path)
 
 
 def get_submols(mol, radius):
@@ -341,8 +343,7 @@ def _make_dir_to_submols(filepath):
     ext = os.path.splitext(full_name)[1]
     dir_path = filepath.replace(ext, "")
     dir_path += "_submols"
-    if not os.path.isdir(dir_path):
-        os.mkdir(dir_path)
+    _create_mol_dir(dir_path)
     return dir_path
 
 
@@ -350,3 +351,21 @@ def _write_atom_map_to_file(atom_map, dir_path):
     with open(dir_path + "/atom_map.txt", "w+") as f:
         for atom in atom_map:
             f.write(f"{atom[0]} -> {atom[1]}\n")
+
+
+def _put_main_atom_on_first_place(atom_map, dir_path):
+    new_dir_path = dir_path + "_xyz"
+    _create_mol_dir(new_dir_path)
+    for mol_idx, submol_idx in atom_map:
+        with open(dir_path + f"/{mol_idx}.xyz", "r") as rf:
+            with open(new_dir_path + f"/{mol_idx}.xyz", "w+") as wf:
+                lines = rf.read().splitlines(keepends=True)
+                lines[2], lines[submol_idx + 1] = lines[submol_idx + 1], lines[2]
+                wf.writelines(lines)
+
+
+def _create_mol_dir(dir_path):
+    if os.path.isdir(dir_path):
+        print("created", dir_path)
+        shutil.rmtree(dir_path)
+    os.mkdir(dir_path)
