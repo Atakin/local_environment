@@ -8,3 +8,4 @@ settings.json
 build
 *.spec
 dist
+help.txt
