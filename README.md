@@ -2,7 +2,7 @@
 ======
 Запуск через собранный скрипт
 ------
-* UNIX - https://disk.yandex.ru/d/pBdXcCzzuqdpOQ
+* UNIX - https://disk.yandex.ru/d/Bp3gpWJ-EkkT_w
 1) Скачать архив
 2) Разархивировать папку
 3) Имя скрипта - local_environment
