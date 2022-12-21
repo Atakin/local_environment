@@ -366,6 +366,6 @@ def _put_main_atom_on_first_place(atom_map, dir_path):
 
 def _create_mol_dir(dir_path):
     if os.path.isdir(dir_path):
-        print("created", dir_path)
         shutil.rmtree(dir_path)
     os.mkdir(dir_path)
+    print("created", dir_path)
